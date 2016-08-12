@@ -1,9 +1,9 @@
-from django.conf.urls import include, url
+import api.views
 
+from django.conf.urls import include, url
 from django.contrib import admin
 admin.autodiscover()
 
-import api.views
 
 # Examples:
 # url(r'^$', 'at-line.views.home', name='home'),

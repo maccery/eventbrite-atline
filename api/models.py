@@ -1,6 +1,14 @@
 from django.db import models
 
 
+class Event(models.Model):
+    pass
+
+
+class Game(models.Model):
+    event_id = models.ForeignKey(Event, on_delete=models.CASCADE)
+
+
 class Question(models.Model):
     text = models.CharField(max_length=90)
     answer = models.IntegerField(max_length=1)
@@ -15,7 +23,7 @@ class Question(models.Model):
 
 
 class Prize(models.Model):
-    game_id = models.IntegerField
+    event_id = models.ForeignKey(Event, on_delete=models.CASCADE)
     inventory_count = models.IntegerField
 
 
@@ -29,7 +37,3 @@ class Session(models.Model):
     game_id = models.IntegerField
     questions = models.ManyToManyField(Question)
     players = models.ManyToManyField(Player)
-
-
-class Game(models.Model):
-    event_id = models.IntegerField

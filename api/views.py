@@ -12,7 +12,6 @@ class API(object):
         message = [message]
         raise Exception('ERROR')
 
-
 class JoinAPI(View, API):
     """ Class based viewed for /join endpoint"""
 

@@ -65,7 +65,7 @@ class JoinAPI(View, API):
             player = self._check_player_id_valid(player_id)
             self._add_player_to_session(session, player)
 
-            self._throw_api_error('We need a POST request')
+            return self._return_as_json(session)
         else:
             self._throw_api_error('We need a POST request')
 
@@ -135,6 +135,18 @@ class QuestionAPI(View, API):
             self._throw_api_error('No session with this ID')
         else:
             return session[0]
+
+class CreateGameAPI(View, API):
+    """ Class based view for create game API"""
+    def post(self, request):
+        if request.method == 'POST':
+            player = self._create_new_game()
+            return self._return_as_json(player)
+        else:
+            self._throw_api_error('Please make a POST request')
+
+    def _create_new_game(self):
+        return Game.objects.create()
 
 
 class CreatePlayerAPI(View, API):

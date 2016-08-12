@@ -11,4 +11,6 @@ import api.views
 
 urlpatterns = [
     url(r'^join/', api.views.JoinAPI.as_view()),
+    url(r'^admin/', include(admin.site.urls)),
+    url(r'^session/', api.views.session, name='session'),
 ]

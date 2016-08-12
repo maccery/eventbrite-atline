@@ -52,3 +52,11 @@ class JoinAPI(View, API):
             session = Session.objects.create(game=game)
 
         return session
+
+def session(request):
+    def get(self, request):
+        if request.method == 'GET':
+            # Session id and primary key in this case are the same thing
+            session_pk = request.GET.get('session_id')
+            session = Session.objects.get(pk=session_pk)
+        return HttpResponse(serializers.serialize('json', [session]))

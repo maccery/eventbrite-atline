@@ -10,5 +10,5 @@ import api.views
 # url(r'^blog/', include('blog.urls')),
 
 urlpatterns = [
-    url(r'^join/', api.views.JoinAPI.join),
+    url(r'^join/', api.views.JoinAPI.as_view()),
 ]

@@ -11,13 +11,34 @@ from api.views import JoinAPI, QuestionAPI, SessionAPI
 from factories import QuestionFactory, PlayerFactory, SessionFactory
 
 
+class TestResults(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.apifactory = APIRequestFactory()
+        self.api = SessionAPI()
+
+    # Integration tests
+    @patch('api.views.ResultsAPI._throw_api_error')
+    def test_request_with_invalid_session_id(self, mock_throw_api_error):
+        test_session = Session.objects.create(pk=200)
+        self.apifactory.get('/results/', {'session_id': 321})
+        self.assertTrue(mock_throw_api_error.called)
+
+    @patch('api.views.ResultsAPI._throw_api_error')
+    def test_request_with_invalid_session_id(self, mock_throw_api_error):
+        test_session = Session.objects.create(pk=321)
+        request = self.apifactory.get('/results/', {'session_id': 321})
+        response = self.api.get(request)
+        print response
+        self.assertFalse(mock_throw_api_error.called)
+
 class TestGetSession(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.apifactory = APIRequestFactory()
         self.api = SessionAPI()
 
-    # Unit tests
+    # Integration tests
     @patch('api.views.SessionAPI._throw_api_error')
     def test_request_with_invalid_session_id(self, mock_throw_api_error):
         test_session = Session.objects.create(pk=200)

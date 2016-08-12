@@ -137,3 +137,23 @@ class CreatePlayerAPI(View, API):
 
     def _create_new_player(self):
         return Player.objects.create()
+
+class ResultsAPI(View, API):
+    """ Class based view for results player API"""
+    def get(self, request):
+        if request.method == 'GET':
+            args = {}
+            session_pk = request.GET.get('session_id')
+            try:
+                session = Session.objects.get(pk=session_pk)
+            except Session.DoesNotExist:
+                self._throw_api_error('No session with this ID')
+
+            # increment number of questions answered
+            session.num_answered += 1
+            session.save()
+
+            sessions_to_render = session.players.all().values()
+            return HttpResponse(json.dumps(session.players.all().values()))
+        else:
+            self._throw_api_error('Please make a GET request')

@@ -12,6 +12,17 @@ class API(object):
         message = [message]
         raise Exception('ERROR')
 
+    def _check_game_id_valid(self, game_id):
+        game = Game.objects.filter(pk=game_id)
+
+        if not game:
+            self._throw_api_error('No game with this ID')
+        else:
+            return game[0]
+
+    def _return_as_json(self, object):
+        return serializers.serialize('json', [object,])
+
 class JoinAPI(View, API):
     """ Class based viewed for /join endpoint"""
     def post(self, request):
@@ -44,14 +55,6 @@ class JoinAPI(View, API):
             self._throw_api_error('No game with this ID')
         else:
             return player[0]
-
-    def _check_game_id_valid(self, game_id):
-        game = Game.objects.filter(pk=game_id)
-
-        if not game:
-            self._throw_api_error('No game with this ID')
-        else:
-            return game[0]
 
     def _assign_questions_to_session(self, session):
         questions = Question.objects.all().order_by('?')[:6]

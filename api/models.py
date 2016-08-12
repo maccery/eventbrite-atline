@@ -20,7 +20,6 @@ class Prize(models.Model):
     inventory_count = models.IntegerField
 
 class Player(models.Model):
-    ticket_id = models.IntegerField
     prize = models.ManyToManyField(Prize)
 
 class Session(models.Model):

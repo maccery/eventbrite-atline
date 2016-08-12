@@ -30,6 +30,6 @@ class Player(models.Model):
 
 class Session(models.Model):
     status = models.CharField(max_length=30)
-    game_id = models.ForeignKey(Game, on_delete=models.CASCADE, null=True)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, null=True)
     questions = models.ManyToManyField(Question)
     players = models.ManyToManyField(Player)

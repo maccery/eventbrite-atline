@@ -7,7 +7,7 @@ class Game(models.Model):
 
 class Question(models.Model):
     text = models.CharField(max_length=90)
-    answer = models.IntegerField(max_length=1)
+    answer = models.IntegerField
     first_option = models.CharField(max_length=15)
     second_option = models.CharField(max_length=15)
     third_option = models.CharField(max_length=15)

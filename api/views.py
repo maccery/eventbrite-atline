@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.forms import model_to_dict
 from api import NUM_QUESTIONS_PER_SESSION
 from api.models import Session, Game, Player, Question
+from api.factories import QuestionSeeder
 
 import json
 from django.views.decorators.csrf import csrf_exempt
@@ -46,6 +47,11 @@ class API(object):
         hey = model_to_dict(hey)
         return JsonResponse(hey, safe=False)
 
+
+class CreateQuestions(View, API):
+    def get(self, request):
+        qs = QuestionSeeder()
+        qs.seed()
 
 class JoinAPI(View, API):
     """ Class based viewed for /join endpoint"""

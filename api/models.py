@@ -13,16 +13,6 @@ class Question(models.Model):
     third_count = models.IntegerField
     fourth_count = models.IntegerField
 
-# Create your models here.
-class Session(models.Model):
-    status = models.CharField(max_length=30)
-    game_id = models.IntegerField
-    question = models.ManyToManyField(Question)
-
-
-class Game(models.Model):
-    event_id = models.IntegerField
-
 
 class Prize(models.Model):
     game_id = models.IntegerField
@@ -32,4 +22,14 @@ class Prize(models.Model):
 class Player(models.Model):
     ticket_id = models.IntegerField
     prize = models.ManyToManyField(Prize)
-    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+
+
+class Session(models.Model):
+    status = models.CharField(max_length=30)
+    game_id = models.IntegerField
+    questions = models.ManyToManyField(Question)
+    players = models.ManyToManyField(Player)
+
+
+class Game(models.Model):
+    event_id = models.IntegerField

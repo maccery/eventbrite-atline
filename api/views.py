@@ -28,7 +28,7 @@ class JoinAPI(View, API):
 
             return serializers.serialize('json', [session,])
         else:
-            self._throw_api_error('We need a GET request')
+            self._throw_api_error('We need a POST request')
 
     def _check_game_id_valid(self, game_id):
         game = Game.objects.filter(pk=game_id)
@@ -47,8 +47,20 @@ class JoinAPI(View, API):
 
         if available_session:
             session = Session.objects.filter(pk=available_session)[0]
-
         else:
             session = Session.objects.create(game=game)
 
         return session
+
+class SessionAPI(View, API):
+    def get(self, request):
+        if request.method == 'GET':
+            # Session id and primary key in this case are the same thing
+            session_pk = request.GET.get('session_id')
+            try:
+                session = Session.objects.get(pk=session_pk)
+            except Session.DoesNotExist:
+                self._throw_api_error('No session with this ID')
+            return HttpResponse(serializers.serialize('json', [session]))
+        else:
+            self._throw_api_error('We need a GET request')

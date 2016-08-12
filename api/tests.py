@@ -48,6 +48,19 @@ class TestJoin(TestCase):
         self.api._check_game_id_valid(game.id)
         self.assertFalse(mock_throw_api_error.called)
 
+    # Unit tests
+    @patch('api.views.JoinAPI._throw_api_error')
+    def test_check_player_id_invalid(self, mock_throw_api_error):
+        id_doesnt_exist = 0
+        self.api._check_player_id_valid(id_doesnt_exist)
+        self.assertTrue(mock_throw_api_error.called)
+
+    @patch('api.views.JoinAPI._throw_api_error')
+    def test_check_player_id_valid(self, mock_throw_api_error):
+        player = Player.objects.create()
+        self.api._check_player_id_valid(player.id)
+        self.assertFalse(mock_throw_api_error.called)
+
     def test_get_or_create_session_no_session(self):
         game = Game.objects.create()
         session = self.api._get_or_create_session(game)
@@ -89,6 +102,13 @@ class TestJoin(TestCase):
         self.assertEqual(expected_session, actual_session)
         self.assertNotEqual(another_session, actual_session)
 
+    def test_assign_player_to_session(self):
+        game = Game.objects.create()
+        session = Session.objects.create(game=game)
+        player = Player.objects.create()
+        self.api._add_player_to_session(session, player)
+        self.assertEqual(session.players.all()[0], player)
+
     def test_assign_questions_to_session(self):
         game = Game.objects.create()
         session = Session.objects.create(game=game)
@@ -106,9 +126,10 @@ class TestJoin(TestCase):
     def test_api_with_everything_okay(self):
         # make a game and questions
         game = Game.objects.create()
+        player = Player.objects.create()
         # make random questions
         self.question_factory.create(1)
-        request = self.apifactory.post('/join/', {'game_id': game.id})
+        request = self.apifactory.post('/join/', {'game_id': game.id, 'player_id': player.id})
         self.api.post(request)
 
     def test_api_no_game_id(self):

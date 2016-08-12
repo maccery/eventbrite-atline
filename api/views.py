@@ -17,6 +17,7 @@ class JoinAPI(View, API):
     def post(self, request):
         if request.method == 'POST':
             game_id = request.POST.get('game_id')
+            player_id = request.POST.get('player_id')
 
             # check if the game id is valid
             game = self._check_game_id_valid(game_id)
@@ -25,10 +26,24 @@ class JoinAPI(View, API):
             session = self._get_or_create_session(game)
             # Get 6 random questions and add it to the session
             self._assign_questions_to_session(session)
+            # Add player to session
+            player = self._check_player_id_valid(player_id)
+            self._add_player_to_session(session, player)
 
             return serializers.serialize('json', [session,])
         else:
             self._throw_api_error('We need a POST request')
+
+    def _add_player_to_session(self, session, player):
+        session.players.add(player)
+
+    def _check_player_id_valid(self, player_id):
+        player = Player.objects.filter(pk=player_id)
+
+        if not player:
+            self._throw_api_error('No game with this ID')
+        else:
+            return player[0]
 
     def _check_game_id_valid(self, game_id):
         game = Game.objects.filter(pk=game_id)

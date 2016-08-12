@@ -26,6 +26,7 @@ class Prize(models.Model):
 
 class Player(models.Model):
     prize = models.ManyToManyField(Prize)
+    points = models.IntegerField(default=0)
 
 
 class Session(models.Model):

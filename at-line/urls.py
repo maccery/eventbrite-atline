@@ -3,6 +3,7 @@ import api.views
 from django.conf.urls import include, url
 from django.contrib import admin
 admin.autodiscover()
+from django.views.decorators.csrf import csrf_exempt
 
 
 # Examples:
@@ -15,6 +16,9 @@ urlpatterns = [
     url(r'^question/', api.views.QuestionAPI.as_view(), name='question'),
     url(r'^session/', api.views.SessionAPI.as_view(), name='session'),
     url(r'^create_player/', api.views.CreatePlayerAPI.as_view(), name='create_player'),
-    url(r'^prizes_game/', api.views.PrizesforGameIDAPI.as_view(), name='prizes_game'),
-    url(r'^prizes_player/', api.views.PrizesforPlayerIDAPI.as_view(), name='prizes_player'),
+    url(r'^prizes_game/', api.views.PrizesforGameAPI.as_view(), name='prizes_game'),
+    url(r'^prizes_player/', api.views.PrizesforPlayerAPI.as_view(), name='prizes_player'),
+    url(r'^create_game/', csrf_exempt(api.views.CreateGameAPI.as_view()), name='create_game'),
+    url(r'^results/', csrf_exempt(api.views.ResultsAPI.as_view()), name='result'),
+    url(r'^answer/', csrf_exempt(api.views.AnswerAPI.as_view()), name='answer'),
 ]

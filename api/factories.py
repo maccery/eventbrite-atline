@@ -25,5 +25,5 @@ class SessionFactory():
         session.num_answered = num_answered
         session.save()
         for i in range(0, number_of_questions):
-            question = Question.objects.create()
+            question = Question.objects.create(answer=3)
             session.questions.add(question)

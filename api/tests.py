@@ -1,11 +1,10 @@
 from django.test import TestCase
-from api.views import JoinAPI, SessionAPI
+from api.views import JoinAPI, SessionAPI, CreatePlayerAPI
 from django.test import TestCase, RequestFactory
 from api.models import Session, Game, Question, Player
 from mock import patch
 from rest_framework.test import APIRequestFactory
 from factories import QuestionFactory, PlayerFactory
-from api.create_player import CreatePlayerAPI
 
 class TestGetSession(TestCase):
     def setUp(self):
@@ -24,7 +23,8 @@ class TestGetSession(TestCase):
     def test_request_with_invalid_session_id(self, mock_throw_api_error):
         test_session = Session.objects.create(pk=321)
         request = self.apifactory.get('/session/', {'session_id': 321})
-        self.api.get(request)
+        response = self.api.get(request)
+        print response
         self.assertFalse(mock_throw_api_error.called)
 
 class TestJoin(TestCase):
@@ -109,6 +109,7 @@ class TestJoin(TestCase):
         player = Player.objects.create()
         self.api._add_player_to_session(session, player)
         self.assertEqual(session.players.all()[0], player)
+        self.assertEqual(session.status, "unavailable")
 
     def test_assign_questions_to_session(self):
         game = Game.objects.create()

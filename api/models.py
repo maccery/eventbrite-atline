@@ -23,7 +23,7 @@ class Player(models.Model):
     prize = models.ManyToManyField(Prize)
 
 class Session(models.Model):
-    status = models.CharField(max_length=30)
+    status = models.CharField(max_length=30, default="unavailable")
     game = models.ForeignKey(Game, on_delete=models.CASCADE, null=True)
     questions = models.ManyToManyField(Question)
     players = models.ManyToManyField(Player)

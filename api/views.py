@@ -4,7 +4,7 @@ from django.core import serializers
 from api.models import Session, Game, Player, Question
 from django.db.models import Count
 from django.views.generic import View
-
+import json
 
 class API(object):
     """ Generic methods for all APIs """
@@ -47,6 +47,9 @@ class JoinAPI(View, API):
 
     def _add_player_to_session(self, session, player):
         session.players.add(player)
+        if (len(session.players.all())) >= 6:
+            session.status = 'ready'
+            session.save()
 
     def _check_player_id_valid(self, player_id):
         player = Player.objects.filter(pk=player_id)
@@ -79,6 +82,20 @@ class SessionAPI(View, API):
                 session = Session.objects.get(pk=session_pk)
             except Session.DoesNotExist:
                 self._throw_api_error('No session with this ID')
-            return HttpResponse(serializers.serialize('json', [session]))
+            session_as_dict = json.loads(serializers.serialize('json', [session]))[0]
+            session_as_dict['player_count'] = len(session.players.all())
+            return HttpResponse(json.dumps(session_as_dict))
         else:
             self._throw_api_error('We need a GET request')
+
+class CreatePlayerAPI(View, API):
+    """ Class based view for create player API"""
+    def post(self, request):
+        if request.method == 'POST':
+            player = self._create_new_player()
+            return self._return_as_json(player)
+        else:
+            self._throw_api_error('Please make a POST request')
+
+    def _create_new_player(self):
+        return Player.objects.create()

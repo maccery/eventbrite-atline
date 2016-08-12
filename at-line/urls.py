@@ -13,5 +13,5 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^join/', api.views.JoinAPI.as_view(), name='join'),
     url(r'^session/', api.views.SessionAPI.as_view(), name='session'),
-    url(r'^create_player/', api.create_player.CreatePlayerAPI.as_view(), name='create_player'),
+    url(r'^create_player/', api.views.CreatePlayerAPI.as_view(), name='create_player'),
 ]

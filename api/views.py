@@ -3,18 +3,19 @@ from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.views.generic import View
-
+from django.http import JsonResponse
+from django.forms import model_to_dict
 from api import NUM_QUESTIONS_PER_SESSION
 from api.models import Session, Game, Player, Question
 
 import json
-
+from django.views.decorators.csrf import csrf_exempt
 
 class API(object):
     """ Generic methods for all APIs """
     def _throw_api_error(self, message):
         message = [message]
-        raise Exception('ERROR')
+        raise Exception('Failed')
 
     def _check_game_id_valid(self, game_id):
         game = Game.objects.filter(pk=game_id)
@@ -41,8 +42,9 @@ class API(object):
         else:
             return player[0]
 
-    def _return_as_json(self, object):
-        return serializers.serialize('json', [object,])
+    def _return_as_json(self, hey):
+        hey = model_to_dict(hey)
+        return JsonResponse(hey, safe=False)
 
 
 class JoinAPI(View, API):
@@ -63,7 +65,7 @@ class JoinAPI(View, API):
             player = self._check_player_id_valid(player_id)
             self._add_player_to_session(session, player)
 
-            return serializers.serialize('json', [session,])
+            return self._return_as_json(session)
         else:
             self._throw_api_error('We need a POST request')
 
@@ -118,7 +120,7 @@ class QuestionAPI(View, API):
                 set_of_questions = session.questions.all()
                 # Send a question
                 question = set_of_questions[session.num_answered]
-                return serializers.serialize('json', [question,])
+                return self._return_as_json(question)
 
             # If max questions reached, then mark session as complete
             elif session.num_answered == NUM_QUESTIONS_PER_SESSION:
@@ -133,6 +135,18 @@ class QuestionAPI(View, API):
             self._throw_api_error('No session with this ID')
         else:
             return session[0]
+
+class CreateGameAPI(View, API):
+    """ Class based view for create game API"""
+    def post(self, request):
+        if request.method == 'POST':
+            player = self._create_new_game()
+            return self._return_as_json(player)
+        else:
+            self._throw_api_error('Please make a POST request')
+
+    def _create_new_game(self):
+        return Game.objects.create()
 
 
 class CreatePlayerAPI(View, API):

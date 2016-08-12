@@ -12,5 +12,6 @@ admin.autodiscover()
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^join/', api.views.JoinAPI.as_view(), name='join'),
+    url(r'^question/', api.views.QuestionAPI.as_view(), name='question'),
     url(r'^session/', api.views.SessionAPI.as_view(), name='session'),
 ]

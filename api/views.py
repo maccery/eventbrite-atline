@@ -78,17 +78,16 @@ class QuestionAPI(View, API):
 
             # Check if session ID is valid
             session = self._check_session_id_valid(session_id)
-
             # Check if user has answered max questions permitted per session
             if session.num_answered < NUM_QUESTIONS_PER_SESSION:
                 # Grab all questions associated given session ID
-                set_of_questions = session.question.all()
+                set_of_questions = session.questions.all()
                 # Send a question
                 question = set_of_questions[session.num_answered]
                 return serializers.serialize('json', [question,])
 
             # If max questions reached, then mark session as complete
-            elif current_session.num_answered == NUM_QUESTIONS_PER_SESSION:
+            elif session.num_answered == NUM_QUESTIONS_PER_SESSION:
                 Session.objects.filter(pk=session_id).update(status='complete')
         else:
             self._throw_api_error('We need a POST request')

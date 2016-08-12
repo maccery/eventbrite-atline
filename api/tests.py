@@ -6,7 +6,7 @@ from rest_framework.test import APIRequestFactory
 from api import NUM_QUESTIONS_PER_SESSION
 from api.models import Session, Game, Question, Player
 from api.views import JoinAPI, QuestionAPI, SessionAPI
-from factories import QuestionFactory, PlayerFactory
+from factories import QuestionFactory, PlayerFactory, SessionFactory
 
 
 class TestGetSession(TestCase):
@@ -35,6 +35,8 @@ class TestJoin(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.apifactory = APIRequestFactory()
+        self.player_factory = PlayerFactory()
+        self.question_factory = QuestionFactory()
         self.request = self.factory.get('/join')
         self.api = JoinAPI()
 
@@ -152,20 +154,19 @@ class QuestionAPITests(TestCase):
         self.assertFalse(mock_throw_api_error.called)
 
     # integration tests
-    def test_api_max_questions_not_reached(self):
-        # make random questions
-        self.question_factory.create(6)
-        # make a session that contains the above questions
-        self.session_factory.create(factory.id, 1)
-
+    def test_api_max_questions_not_answered(self):
+        session = Session.objects.create()
+        self.session_factory.create(session, NUM_QUESTIONS_PER_SESSION, 1)
         request = self.apifactory.post('/question/', {'session_id': session.id})
-        self.api.post(request)
+        response = self.api.post(request)
+        self.assertEqual(1, session.num_answered)
 
-    def test_api_max_questions_reached(self):
-        # make a session
-        self.session_factory.create(1, NUM_QUESTIONS_PER_SESSION)
+    def test_api_all_questions_answered(self):
+        session = Session.objects.create()
+        self.session_factory.create(session, NUM_QUESTIONS_PER_SESSION, NUM_QUESTIONS_PER_SESSION)
         request = self.apifactory.post('/question/', {'session_id': session.id})
-        self.api.post(request)
+        response = self.api.post(request)
+        self.assertEqual(NUM_QUESTIONS_PER_SESSION, session.num_answered)
 
     def test_api_no_session_id(self):
         with self.assertRaises(Exception):
@@ -175,7 +176,6 @@ class QuestionAPITests(TestCase):
 
     def test_api_with_everything_okay_but_get(self):
         with self.assertRaises(Exception):
-            # make a session and questions
             session = Session.objects.create()
             request = self.apifactory.get('/question/', {'session_id': session.id})
             self.api.post(request)

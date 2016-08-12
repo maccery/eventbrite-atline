@@ -5,7 +5,7 @@ from django.shortcuts import render_to_response
 from django.views.generic import View
 
 from api import NUM_QUESTIONS_PER_SESSION
-from api.models import Session, Game, Player, Question
+from api.models import Session, Game, Player, Question, Prize
 
 import json
 
@@ -113,7 +113,7 @@ class QuestionAPI(View, API):
 
             # If max questions reached, then mark session as complete
             elif session.num_answered == NUM_QUESTIONS_PER_SESSION:
-                Session.objects.filter(pk=session_id).update(status='complete')
+                Session.objects.filter(pk=session_id).update(status='available')
         else:
             self._throw_api_error('We need a POST request')
 
@@ -137,3 +137,48 @@ class CreatePlayerAPI(View, API):
 
     def _create_new_player(self):
         return Player.objects.create()
+
+
+class PrizesforGameAPI(View, API):
+
+    def post(self, request):
+        if request.method == 'POST':
+            game_id = request.POST.get('game_id')
+
+            # Check if game ID is valid
+            game = self._check_game_id_valid(game_id)
+
+            # Grab all prizes associated given gameID
+            set_of_prizes = Prize.objects.filter(game_id=game_id)
+
+            # Return prizes
+            return set_of_prizes.values()
+        else:
+            self._throw_api_error('Please make a POST request')
+
+
+class PrizesforPlayerAPI(View, API):
+
+    def post(self, request):
+        if request.method == 'POST':
+            player_id = request.POST.get('player_id')
+
+            # Check if player ID is valid
+            player = self._check_player_id_valid(player_id)
+
+            # Grab all prizes associated with given playerID
+            set_of_prizes = player.prize.all()
+
+            # Return prizes
+            return set_of_prizes.values()
+
+        else:
+            self._throw_api_error('Please make a POST request')
+
+    def _check_player_id_valid(self, player_id):
+        player = Player.objects.filter(pk=player_id)
+
+        if not player:
+            self._throw_api_error('No player with this ID')
+        else:
+            return player[0]

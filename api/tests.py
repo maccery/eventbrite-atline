@@ -6,8 +6,8 @@ from mock import patch
 from rest_framework.test import APIRequestFactory
 
 from api import NUM_QUESTIONS_PER_SESSION
-from api.models import Session, Game, Question, Player
-from api.views import JoinAPI, QuestionAPI, SessionAPI
+from api.models import Session, Game, Question, Player, Prize
+from api.views import JoinAPI, QuestionAPI, SessionAPI, PrizesforGameAPI, PrizesforPlayerAPI
 from factories import QuestionFactory, PlayerFactory, SessionFactory
 
 
@@ -199,11 +199,13 @@ class QuestionAPITests(TestCase):
             self.api.post(request)
             self.assertRaises(Exception)
 
-    def test_api_with_everything_okay_but_get(self):
-        with self.assertRaises(Exception):
-            session = Session.objects.create()
-            request = self.apifactory.get('/question/', {'session_id': session.id})
-            self.api.post(request)
+    def test_api(self):
+        session = Session.objects.create(pk=1)
+        self.session_factory.create(session, NUM_QUESTIONS_PER_SESSION, 0)
+        request = self.apifactory.post('/question/', {'session_id': 1})
+        response = self.api.post(request)
+        print response
+        # self.assertEquals(response, session.questions.values()[0]) doesn't work because factories is incomplete
 
 
 class TestCreatePlayer(TestCase):
@@ -217,5 +219,62 @@ class TestCreatePlayer(TestCase):
 
     def test_api(self):
         request = self.apifactory.post('/create_player/', {})
+        response = self.api.post(request)
+        print response
+
+
+class TestPrizesforGameAPI(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.apifactory = APIRequestFactory()
+        self.request = self.factory.get('/prizes_game')
+        self.api = PrizesforGameAPI()
+
+    # integration tests
+    def test_api_no_game_id(self):
+        with self.assertRaises(Exception):
+            request = self.apifactory.post('/prizes_game/', {})
+            self.api.post(request)
+            self.assertRaises(Exception)
+
+    def test_api(self):
+        game = Game.objects.create(pk=1)
+        prize = Prize.objects.create(game_id=game)
+        request = self.apifactory.post('/prizes_game/', {'game_id': 1})
+        response = self.api.post(request)
+        print response
+
+
+class TestPrizesforPlayerAPI(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.apifactory = APIRequestFactory()
+        self.request = self.factory.get('/prizes_player')
+        self.api = PrizesforPlayerAPI()
+
+    @patch('api.views.PrizesforPlayerAPI._throw_api_error')
+    def test_check_player_id_invalid(self, mock_throw_api_error):
+        id_doesnt_exist = 0
+        self.api._check_player_id_valid(id_doesnt_exist)
+        self.assertTrue(mock_throw_api_error.called)
+
+    @patch('api.views.PrizesforPlayerAPI._throw_api_error')
+    def test_check_player_id_valid(self, mock_throw_api_error):
+        player = Player.objects.create()
+        self.api._check_player_id_valid(player.id)
+        self.assertFalse(mock_throw_api_error.called)
+
+    # integration tests
+    def test_api_no_player_id(self):
+        with self.assertRaises(Exception):
+            request = self.apifactory.post('/prizes_player/', {})
+            self.api.post(request)
+            self.assertRaises(Exception)
+
+    def test_api(self):
+        player = Player.objects.create(pk=1)
+        prize = Prize.objects.create()
+        player.prize.add(prize)
+        request = self.apifactory.post('/prizes_player/', {'player_id': 1})
         response = self.api.post(request)
         print response

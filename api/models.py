@@ -2,25 +2,26 @@ from django.db import models
 
 
 class Game(models.Model):
-    event_id = models.IntegerField
+    event_id = models.IntegerField(default=0)
 
 
 class Question(models.Model):
     text = models.CharField(max_length=90)
-    answer = models.IntegerField
+    answer = models.IntegerField(default=0)
     first_option = models.CharField(max_length=15)
     second_option = models.CharField(max_length=15)
     third_option = models.CharField(max_length=15)
     fourth_option = models.CharField(max_length=15)
-    first_count = models.IntegerField
-    second_count = models.IntegerField
-    third_count = models.IntegerField
-    fourth_count = models.IntegerField
+    first_count = models.IntegerField(default=0)
+    second_count = models.IntegerField(default=0)
+    third_count = models.IntegerField(default=0)
+    fourth_count = models.IntegerField(default=0)
 
 
 class Prize(models.Model):
     game_id = models.ForeignKey(Game, on_delete=models.CASCADE, null=True)
-    inventory_count = models.IntegerField
+    text = models.CharField(max_length=90, default='')
+    inventory_count = models.IntegerField(default=0)
 
 
 class Player(models.Model):

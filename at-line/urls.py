@@ -15,4 +15,6 @@ urlpatterns = [
     url(r'^question/', api.views.QuestionAPI.as_view(), name='question'),
     url(r'^session/', api.views.SessionAPI.as_view(), name='session'),
     url(r'^create_player/', api.views.CreatePlayerAPI.as_view(), name='create_player'),
+    url(r'^prizes_game/', api.views.PrizesforGameIDAPI.as_view(), name='prizes_game'),
+    url(r'^prizes_player/', api.views.PrizesforPlayerIDAPI.as_view(), name='prizes_player'),
 ]

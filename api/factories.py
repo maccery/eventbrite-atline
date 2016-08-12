@@ -5,7 +5,7 @@ class QuestionFactory():
         for i in range(0, number_of_questions):
             Question.objects.create(
                 text='hey',
-                answer=1,
+                # answer=1,
                 first_option='hey',
                 second_option='hey',
                 third_option='hey',

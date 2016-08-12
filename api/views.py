@@ -168,7 +168,7 @@ class ResultsAPI(View, API):
         else:
             self._throw_api_error('Please make a GET request')
 
-class AnswerAPI(API):
+class AnswerAPI(View, API):
     """ Class based view for answering a question API"""
     def post(self, request):
         if request.method == 'POST':

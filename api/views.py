@@ -10,7 +10,6 @@ class API(object):
     """ Generic methods for all APIs """
     def _throw_api_error(self, message):
         message = [message]
-
         raise Exception('ERROR')
 
 

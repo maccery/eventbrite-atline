@@ -5,6 +5,7 @@ from api.models import Session, Game, Question, Player
 from mock import patch
 from rest_framework.test import APIRequestFactory
 from factories import QuestionFactory, PlayerFactory
+from api.create_player import CreatePlayerAPI
 
 class TestGetSession(TestCase):
     def setUp(self):
@@ -145,3 +146,17 @@ class TestJoin(TestCase):
             # make random questions
             request = self.apifactory.get('/join/', {'game_id': game.id})
             self.api.post(request)
+
+class TestCreatePlayer(TestCase):
+    def setUp(self):
+        self.api = CreatePlayerAPI()
+        self.apifactory = APIRequestFactory()
+
+    def test_create_player(self):
+        player = self.api._create_new_player()
+        self.assertIsInstance(player, Player)
+
+    def test_api(self):
+        request = self.apifactory.post('/create_player/', {})
+        response = self.api.post(request)
+        print response

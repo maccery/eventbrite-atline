@@ -7,7 +7,7 @@ class Game(models.Model):
 
 class Question(models.Model):
     text = models.CharField(max_length=90)
-    answer = models.IntegerField
+    answer = models.IntegerField(default=0)
     first_option = models.CharField(max_length=15)
     second_option = models.CharField(max_length=15)
     third_option = models.CharField(max_length=15)
@@ -25,6 +25,7 @@ class Prize(models.Model):
 
 class Player(models.Model):
     prize = models.ManyToManyField(Prize)
+    points = models.IntegerField(default=0)
 
 
 class Session(models.Model):

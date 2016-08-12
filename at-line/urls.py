@@ -16,4 +16,5 @@ urlpatterns = [
     url(r'^session/', api.views.SessionAPI.as_view(), name='session'),
     url(r'^create_player/', api.views.CreatePlayerAPI.as_view(), name='create_player'),
     url(r'^results/', api.views.ResultsAPI.as_view(), name='result'),
+    url(r'^answer/', api.views.AnswerAPI.as_view(), name='answer'),
 ]

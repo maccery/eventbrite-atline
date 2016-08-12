@@ -4,10 +4,9 @@ from django.test import TestCase, RequestFactory
 
 from mock import patch
 from rest_framework.test import APIRequestFactory
-
 from api import NUM_QUESTIONS_PER_SESSION
 from api.models import Session, Game, Question, Player
-from api.views import JoinAPI, QuestionAPI, SessionAPI
+from api.views import *
 from factories import QuestionFactory, PlayerFactory, SessionFactory
 
 
@@ -161,7 +160,8 @@ class TestJoin(TestCase):
         # make random questions
         self.question_factory.create(1)
         request = self.apifactory.post('/join/', {'game_id': game.id, 'player_id': player.id})
-        self.api.post(request)
+        response = self.api.post(request)
+        print response
 
     def test_api_no_game_id(self):
         with self.assertRaises(Exception):
@@ -240,3 +240,43 @@ class TestCreatePlayer(TestCase):
         request = self.apifactory.post('/create_player/', {})
         response = self.api.post(request)
         print response
+
+class TestAnswer(TestCase):
+    def setUp(self):
+        self.api = AnswerAPI()
+        self.session_factory = SessionFactory()
+        self.apifactory = APIRequestFactory()
+
+    def test_check_answer_right_invalid_id(self):
+        question = Question.objects.create(answer=3)
+        true_or_false = self.api._check_answer_right(question, 4)
+        self.assertFalse(true_or_false)
+
+    def test_check_answer_right_valid_id(self):
+        question = Question.objects.create(answer=3)
+        true_or_false = self.api._check_answer_right(question, 3)
+        self.assertTrue(true_or_false)
+
+    def test_update_points(self):
+        player = Player.objects.create()
+        self.assertEqual(player.points, 0)
+        self.api._update_points(player)
+        self.assertEqual(player.points, 3)
+
+    # integration
+    def test_api(self):
+        player = Player.objects.create()
+        session = Session.objects.create()
+        self.session_factory.create(session, 6, 0)
+
+        request = self.apifactory.post('/answer/', {'answer': 3, 'session_id': session.id, 'player_id': player.id})
+        response = self.api.post(request)
+        #self.assertEqual(player.points, 3)
+
+    def test_api_wrong_answer(self):
+        player = Player.objects.create()
+        session = Session.objects.create()
+        self.session_factory.create(session, 6, 0)
+        request = self.apifactory.post('/answer/', {'answer': 3, 'session_id': session.id, 'player_id': player.id})
+        response = self.api.post(request)
+        self.assertEqual(player.points, 0)

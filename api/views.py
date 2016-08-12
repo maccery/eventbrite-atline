@@ -14,7 +14,6 @@ class API(object):
 
 class JoinAPI(View, API):
     """ Class based viewed for /join endpoint"""
-
     def post(self, request):
         if request.method == 'POST':
             game_id = request.POST.get('game_id')

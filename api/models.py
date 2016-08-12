@@ -1,13 +1,6 @@
 from django.db import models
 
 
-# Create your models here.
-class Session(models.Model):
-    status = models.CharField(max_length=30)
-    game_id = models.IntegerField
-    question = models.ManyToManyField(Question)
-
-
 class Question(models.Model):
     text = models.CharField(max_length=90)
     answer = models.IntegerField(max_length=1)
@@ -19,6 +12,12 @@ class Question(models.Model):
     second_count = models.IntegerField
     third_count = models.IntegerField
     fourth_count = models.IntegerField
+
+# Create your models here.
+class Session(models.Model):
+    status = models.CharField(max_length=30)
+    game_id = models.IntegerField
+    question = models.ManyToManyField(Question)
 
 
 class Game(models.Model):

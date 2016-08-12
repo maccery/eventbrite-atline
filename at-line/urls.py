@@ -11,6 +11,5 @@ import api.views
 
 urlpatterns = [
     url(r'^$', api.views.index, name='index'),
-    url(r'^db', api.views.db, name='db'),
     url(r'^admin/', include(admin.site.urls)),
 ]

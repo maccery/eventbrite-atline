@@ -1,10 +1,15 @@
 from django.test import TestCase
 from api.views import JoinAPI, SessionAPI, CreatePlayerAPI
 from django.test import TestCase, RequestFactory
-from api.models import Session, Game, Question, Player
+
 from mock import patch
 from rest_framework.test import APIRequestFactory
-from factories import QuestionFactory, PlayerFactory
+
+from api import NUM_QUESTIONS_PER_SESSION
+from api.models import Session, Game, Question, Player
+from api.views import JoinAPI, QuestionAPI, SessionAPI
+from factories import QuestionFactory, PlayerFactory, SessionFactory
+
 
 class TestGetSession(TestCase):
     def setUp(self):
@@ -27,12 +32,14 @@ class TestGetSession(TestCase):
         print response
         self.assertFalse(mock_throw_api_error.called)
 
+
 class TestJoin(TestCase):
+
     def setUp(self):
         self.factory = RequestFactory()
-        self.question_factory = QuestionFactory()
-        self.player_factory = PlayerFactory()
         self.apifactory = APIRequestFactory()
+        self.player_factory = PlayerFactory()
+        self.question_factory = QuestionFactory()
         self.request = self.factory.get('/join')
         self.api = JoinAPI()
 
@@ -114,17 +121,18 @@ class TestJoin(TestCase):
     def test_assign_questions_to_session(self):
         game = Game.objects.create()
         session = Session.objects.create(game=game)
-        self.question_factory.create(6)
+        self.question_factory.create(NUM_QUESTIONS_PER_SESSION)
 
         self.api._assign_questions_to_session(session)
         questions = Question.objects.all()
         for question in session.questions.all():
             self.assertTrue([question in questions])
+
         # checking that we all have valid questions, that we have 6 questions
         # associated now
-        self.assertEqual(len(session.questions.all()), 6)
+        self.assertEqual(len(session.questions.all()), NUM_QUESTIONS_PER_SESSION)
 
-    # Integration tests
+    # integration tests
     def test_api_with_everything_okay(self):
         # make a game and questions
         game = Game.objects.create()
@@ -147,6 +155,56 @@ class TestJoin(TestCase):
             # make random questions
             request = self.apifactory.get('/join/', {'game_id': game.id})
             self.api.post(request)
+
+
+class QuestionAPITests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.apifactory = APIRequestFactory()
+        self.session_factory = SessionFactory()
+        self.question_factory = QuestionFactory()
+        self.request = self.factory.get('/question')
+        self.api = QuestionAPI()
+
+    @patch('api.views.QuestionAPI._throw_api_error')
+    def test_check_session_id_invalid(self, mock_throw_api_error):
+        id_doesnt_exist = 0
+        self.api._check_session_id_valid(id_doesnt_exist)
+        self.assertTrue(mock_throw_api_error.called)
+
+    @patch('api.views.QuestionAPI._throw_api_error')
+    def test_check_session_id_valid(self, mock_throw_api_error):
+        session = Session.objects.create()
+        self.api._check_session_id_valid(session.id)
+        self.assertFalse(mock_throw_api_error.called)
+
+    # integration tests
+    def test_api_max_questions_not_answered(self):
+        session = Session.objects.create()
+        self.session_factory.create(session, NUM_QUESTIONS_PER_SESSION, 1)
+        request = self.apifactory.post('/question/', {'session_id': session.id})
+        response = self.api.post(request)
+        self.assertEqual(1, session.num_answered)
+
+    def test_api_all_questions_answered(self):
+        session = Session.objects.create()
+        self.session_factory.create(session, NUM_QUESTIONS_PER_SESSION, NUM_QUESTIONS_PER_SESSION)
+        request = self.apifactory.post('/question/', {'session_id': session.id})
+        response = self.api.post(request)
+        self.assertEqual(NUM_QUESTIONS_PER_SESSION, session.num_answered)
+
+    def test_api_no_session_id(self):
+        with self.assertRaises(Exception):
+            request = self.apifactory.post('/question/', {})
+            self.api.post(request)
+            self.assertRaises(Exception)
+
+    def test_api_with_everything_okay_but_get(self):
+        with self.assertRaises(Exception):
+            session = Session.objects.create()
+            request = self.apifactory.get('/question/', {'session_id': session.id})
+            self.api.post(request)
+
 
 class TestCreatePlayer(TestCase):
     def setUp(self):

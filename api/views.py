@@ -24,6 +24,23 @@ class API(object):
         else:
             return game[0]
 
+    def _check_session_id_valid(self, session_id):
+        session = Session.objects.filter(pk=session_id)
+
+        if not session:
+            self._throw_api_error('No session with this ID')
+        else:
+            return session[0]
+
+
+    def _check_player_id_valid(self, player_id):
+        player = Player.objects.filter(pk=player_id)
+
+        if not player:
+            self._throw_api_error('No game with this ID')
+        else:
+            return player[0]
+
     def _return_as_json(self, object):
         return serializers.serialize('json', [object,])
 
@@ -55,14 +72,6 @@ class JoinAPI(View, API):
         if (len(session.players.all())) >= 6:
             session.status = 'ready'
             session.save()
-
-    def _check_player_id_valid(self, player_id):
-        player = Player.objects.filter(pk=player_id)
-
-        if not player:
-            self._throw_api_error('No game with this ID')
-        else:
-            return player[0]
 
     def _assign_questions_to_session(self, session):
         questions = Question.objects.all().order_by('?')[:NUM_QUESTIONS_PER_SESSION]
@@ -138,6 +147,7 @@ class CreatePlayerAPI(View, API):
     def _create_new_player(self):
         return Player.objects.create()
 
+
 class ResultsAPI(View, API):
     """ Class based view for results player API"""
     def get(self, request):
@@ -157,3 +167,52 @@ class ResultsAPI(View, API):
             return HttpResponse(json.dumps(session.players.all().values()))
         else:
             self._throw_api_error('Please make a GET request')
+
+class AnswerAPI(View, API):
+    """ Class based view for answering a question API"""
+    def post(self, request):
+        if request.method == 'POST':
+            session_id = request.POST.get('session_id')
+            player_id = request.POST.get('player_id')
+            answer_id = request.POST.get('answer')
+
+            session = self._check_session_id_valid(session_id)
+            question = self._get_latest_question(session)
+            player = self._check_player_id_valid(player_id)
+
+            answered_right = self._check_answer_right(question, answer_id)
+            if answered_right:
+                print ('update points')
+                self._update_points(player)
+
+            return self._return_as_json(question)
+        else:
+            self._throw_api_error('Please make a POST request')
+
+    def _get_latest_question(self, session):
+        question_number = session.num_answered + 1
+        questions = session.questions.all()
+
+        if question_number < 0 or question_number > 4:
+            self._throw_api_error('invalid question')
+
+        return questions[question_number]
+
+    def _check_answer_right(self, question, answer_id):
+        answer_id = int(answer_id)
+        print ('answer_id', answer_id)
+        if answer_id > 4 or answer_id < 0:
+            self._throw_api_error('Invalid answer ID')
+
+        # check for answer
+        correct_answer = question.answer
+        print ("correct answer", correct_answer)
+        if answer_id == correct_answer:
+            print ("correct")
+            return True
+        else:
+            return False
+
+    def _update_points(self, player):
+        player.points = player.points + 3
+        player.save()

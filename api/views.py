@@ -183,8 +183,12 @@ class ResultsAPI(View, API):
             session.num_answered += 1
             session.save()
 
-            sessions_to_render = session.players.all().values()
-            return HttpResponse(json.dumps(session.players.all().values()))
+            swags = []
+
+            for player in session.players.all():
+                swags.append(model_to_dict(player))
+
+            return JsonResponse(swags, safe=False)
         else:
             self._throw_api_error('Please make a GET request')
 

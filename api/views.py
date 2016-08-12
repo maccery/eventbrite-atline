@@ -7,31 +7,14 @@ from django.views.generic import View
 from api import NUM_QUESTIONS_PER_SESSION
 from api.models import Session, Game, Player, Question
 
+import json
+
 
 class API(object):
     """ Generic methods for all APIs """
     def _throw_api_error(self, message):
         message = [message]
         raise Exception('ERROR')
-
-
-class JoinAPI(View, API):
-    """ Class based viewed for /join endpoint"""
-    def post(self, request):
-        if request.method == 'POST':
-            game_id = request.POST.get('game_id')
-
-            # check if the game id is valid
-            game = self._check_game_id_valid(game_id)
-
-            # Find available sessions
-            session = self._get_or_create_session(game)
-            # Get 6 random questions and add it to the session
-            self._assign_questions_to_session(session)
-
-            return serializers.serialize('json', [session,])
-        else:
-            self._throw_api_error('We need a POST request')
 
     def _check_game_id_valid(self, game_id):
         game = Game.objects.filter(pk=game_id)
@@ -40,6 +23,46 @@ class JoinAPI(View, API):
             self._throw_api_error('No game with this ID')
         else:
             return game[0]
+
+    def _return_as_json(self, object):
+        return serializers.serialize('json', [object,])
+
+
+class JoinAPI(View, API):
+    """ Class based viewed for /join endpoint"""
+    def post(self, request):
+        if request.method == 'POST':
+            game_id = request.POST.get('game_id')
+            player_id = request.POST.get('player_id')
+
+            # check if the game id is valid
+            game = self._check_game_id_valid(game_id)
+
+            # Find available sessions
+            session = self._get_or_create_session(game)
+            # Get 6 random questions and add it to the session
+            self._assign_questions_to_session(session)
+            # Add player to session
+            player = self._check_player_id_valid(player_id)
+            self._add_player_to_session(session, player)
+
+            return serializers.serialize('json', [session,])
+        else:
+            self._throw_api_error('We need a POST request')
+
+    def _add_player_to_session(self, session, player):
+        session.players.add(player)
+        if (len(session.players.all())) >= 6:
+            session.status = 'ready'
+            session.save()
+
+    def _check_player_id_valid(self, player_id):
+        player = Player.objects.filter(pk=player_id)
+
+        if not player:
+            self._throw_api_error('No game with this ID')
+        else:
+            return player[0]
 
     def _assign_questions_to_session(self, session):
         questions = Question.objects.all().order_by('?')[:NUM_QUESTIONS_PER_SESSION]
@@ -65,7 +88,9 @@ class SessionAPI(View, API):
                 session = Session.objects.get(pk=session_pk)
             except Session.DoesNotExist:
                 self._throw_api_error('No session with this ID')
-            return HttpResponse(serializers.serialize('json', [session]))
+            session_as_dict = json.loads(serializers.serialize('json', [session]))[0]
+            session_as_dict['player_count'] = len(session.players.all())
+            return HttpResponse(json.dumps(session_as_dict))
         else:
             self._throw_api_error('We need a GET request')
 
@@ -99,3 +124,16 @@ class QuestionAPI(View, API):
             self._throw_api_error('No session with this ID')
         else:
             return session[0]
+
+
+class CreatePlayerAPI(View, API):
+    """ Class based view for create player API"""
+    def post(self, request):
+        if request.method == 'POST':
+            player = self._create_new_player()
+            return self._return_as_json(player)
+        else:
+            self._throw_api_error('Please make a POST request')
+
+    def _create_new_player(self):
+        return Player.objects.create()

@@ -1,3 +1,5 @@
+from django.test import TestCase
+from api.views import JoinAPI, SessionAPI, CreatePlayerAPI
 from django.test import TestCase, RequestFactory
 
 from mock import patch
@@ -26,7 +28,8 @@ class TestGetSession(TestCase):
     def test_request_with_invalid_session_id(self, mock_throw_api_error):
         test_session = Session.objects.create(pk=321)
         request = self.apifactory.get('/session/', {'session_id': 321})
-        self.api.get(request)
+        response = self.api.get(request)
+        print response
         self.assertFalse(mock_throw_api_error.called)
 
 
@@ -51,6 +54,19 @@ class TestJoin(TestCase):
     def test_check_game_id_valid(self, mock_throw_api_error):
         game = Game.objects.create()
         self.api._check_game_id_valid(game.id)
+        self.assertFalse(mock_throw_api_error.called)
+
+    # Unit tests
+    @patch('api.views.JoinAPI._throw_api_error')
+    def test_check_player_id_invalid(self, mock_throw_api_error):
+        id_doesnt_exist = 0
+        self.api._check_player_id_valid(id_doesnt_exist)
+        self.assertTrue(mock_throw_api_error.called)
+
+    @patch('api.views.JoinAPI._throw_api_error')
+    def test_check_player_id_valid(self, mock_throw_api_error):
+        player = Player.objects.create()
+        self.api._check_player_id_valid(player.id)
         self.assertFalse(mock_throw_api_error.called)
 
     def test_get_or_create_session_no_session(self):
@@ -94,6 +110,14 @@ class TestJoin(TestCase):
         self.assertEqual(expected_session, actual_session)
         self.assertNotEqual(another_session, actual_session)
 
+    def test_assign_player_to_session(self):
+        game = Game.objects.create()
+        session = Session.objects.create(game=game)
+        player = Player.objects.create()
+        self.api._add_player_to_session(session, player)
+        self.assertEqual(session.players.all()[0], player)
+        self.assertEqual(session.status, "unavailable")
+
     def test_assign_questions_to_session(self):
         game = Game.objects.create()
         session = Session.objects.create(game=game)
@@ -112,9 +136,10 @@ class TestJoin(TestCase):
     def test_api_with_everything_okay(self):
         # make a game and questions
         game = Game.objects.create()
+        player = Player.objects.create()
         # make random questions
         self.question_factory.create(1)
-        request = self.apifactory.post('/join/', {'game_id': game.id})
+        request = self.apifactory.post('/join/', {'game_id': game.id, 'player_id': player.id})
         self.api.post(request)
 
     def test_api_no_game_id(self):
@@ -179,3 +204,18 @@ class QuestionAPITests(TestCase):
             session = Session.objects.create()
             request = self.apifactory.get('/question/', {'session_id': session.id})
             self.api.post(request)
+
+
+class TestCreatePlayer(TestCase):
+    def setUp(self):
+        self.api = CreatePlayerAPI()
+        self.apifactory = APIRequestFactory()
+
+    def test_create_player(self):
+        player = self.api._create_new_player()
+        self.assertIsInstance(player, Player)
+
+    def test_api(self):
+        request = self.apifactory.post('/create_player/', {})
+        response = self.api.post(request)
+        print response

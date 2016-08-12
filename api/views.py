@@ -4,11 +4,21 @@ from django.core import serializers
 
 from api.models import Session, Game, Player, Question
 from django.db.models import Count
+from django.views.generic import View
 
 
 class API(object):
+    """ Generic methods for all APIs """
+    def _throw_api_error(self, message):
+        message = [message]
 
-    def join(self, request):
+        raise Exception('ERROR')
+
+
+class JoinAPI(View, API):
+    """ Class based viewed for /join endpoint"""
+
+    def post(self, request):
         if request.method == 'POST':
             game_id = request.POST.get('game_id')
 
@@ -46,8 +56,3 @@ class API(object):
             session = Session.objects.create(game=game)
 
         return session
-
-    def _throw_api_error(self, message):
-        message = [message]
-
-        raise Exception('ERROR')

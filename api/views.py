@@ -8,7 +8,7 @@ def join(request):
     game_id = request.get.GET('game_id')
 
     # check if the game id is valid
-    game = Game(id=game_id)
+    game = Game(pk=game_id)
     if not game:
         render_to_response({'Invalid game id'})
 

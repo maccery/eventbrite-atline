@@ -10,6 +10,5 @@ import api.views
 # url(r'^blog/', include('blog.urls')),
 
 urlpatterns = [
-    url(r'^$', api.views.index, name='index'),
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^join/', api.views.join),
 ]

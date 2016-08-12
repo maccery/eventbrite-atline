@@ -2,6 +2,7 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.core import serializers
 
+
 from api.models import Session, Game, Player, Question
 from django.db.models import Count
 from django.views.generic import View

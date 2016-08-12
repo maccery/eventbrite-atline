@@ -1,14 +1,32 @@
 from django.test import TestCase
-from api.views import JoinAPI
+from api.views import JoinAPI, SessionAPI
 from django.test import TestCase, RequestFactory
 from api.models import Session, Game, Question, Player
 from mock import patch
 from rest_framework.test import APIRequestFactory
 from factories import QuestionFactory, PlayerFactory
 
+class TestGetSession(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.apifactory = APIRequestFactory()
+        self.api = SessionAPI()
+
+    # Unit tests
+    @patch('api.views.SessionAPI._throw_api_error')
+    def test_request_with_invalid_session_id(self, mock_throw_api_error):
+        test_session = Session.objects.create(pk=200)
+        self.apifactory.get('/session/', {'session_id': 321})
+        self.assertTrue(mock_throw_api_error.called)
+
+    @patch('api.views.SessionAPI._throw_api_error')
+    def test_request_with_invalid_session_id(self, mock_throw_api_error):
+        test_session = Session.objects.create(pk=321)
+        request = self.apifactory.get('/session/', {'session_id': 321})
+        self.api.get(request)
+        self.assertFalse(mock_throw_api_error.called)
 
 class TestJoin(TestCase):
-
     def setUp(self):
         self.factory = RequestFactory()
         self.question_factory = QuestionFactory()
@@ -17,7 +35,7 @@ class TestJoin(TestCase):
         self.request = self.factory.get('/join')
         self.api = JoinAPI()
 
-    # unit tests
+    # Unit tests
     @patch('api.views.JoinAPI._throw_api_error')
     def test_check_game_id_invalid(self, mock_throw_api_error):
         id_doesnt_exist = 0
@@ -84,7 +102,7 @@ class TestJoin(TestCase):
         # associated now
         self.assertEqual(len(session.questions.all()), 6)
 
-    # integration tests
+    # Integration tests
     def test_api_with_everything_okay(self):
         # make a game and questions
         game = Game.objects.create()
@@ -99,7 +117,6 @@ class TestJoin(TestCase):
             self.api.post(request)
             self.assertRaises(Exception)
 
-    # integration tests
     def test_api_with_everything_okay_but_get(self):
         with self.assertRaises(Exception):
             # make a game and questions

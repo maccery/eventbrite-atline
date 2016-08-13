@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.forms import model_to_dict
 from api import NUM_QUESTIONS_PER_SESSION
 from api.models import Session, Game, Player, Question, Prize
+from api.factories import QuestionSeeder
 
 import json
 from django.views.decorators.csrf import csrf_exempt
@@ -46,6 +47,11 @@ class API(object):
         hey = model_to_dict(hey)
         return JsonResponse(hey, safe=False)
 
+
+class CreateQuestions(View, API):
+    def get(self, request):
+        qs = QuestionSeeder()
+        qs.seed()
 
 class JoinAPI(View, API):
     """ Class based viewed for /join endpoint"""
@@ -223,8 +229,12 @@ class ResultsAPI(View, API):
             session.num_answered += 1
             session.save()
 
-            sessions_to_render = session.players.all().values()
-            return HttpResponse(json.dumps(session.players.all().values()))
+            swags = []
+
+            for player in session.players.all():
+                swags.append(model_to_dict(player))
+
+            return JsonResponse(swags, safe=False)
         else:
             self._throw_api_error('Please make a GET request')
 

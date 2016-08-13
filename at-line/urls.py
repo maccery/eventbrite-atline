@@ -21,4 +21,5 @@ urlpatterns = [
     url(r'^create_game/', csrf_exempt(api.views.CreateGameAPI.as_view()), name='create_game'),
     url(r'^results/', csrf_exempt(api.views.ResultsAPI.as_view()), name='result'),
     url(r'^answer/', csrf_exempt(api.views.AnswerAPI.as_view()), name='answer'),
+    url(r'^question_seeder/', csrf_exempt(api.views.CreateQuestions.as_view()), name='question_seeder'),
 ]

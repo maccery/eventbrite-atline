@@ -1,44 +1,108 @@
-# python-getting-started
+# About
+Simple Django-based backend for a questionnaire game for a 24 hour hackathon at Eventbrite HQ.
 
-A barebones Python app, which can easily be deployed to Heroku.
+Although built for a hackathon, the code has good test coverage. 
 
-This application supports the [Getting Started with Python on Heroku](https://devcenter.heroku.com/articles/getting-started-with-python) article - check it out.
+# API docs
+## Join [/join]
+### Joining a session [POST]
 
-## Running Locally
++ Request (application/json)
 
-Make sure you have Python [installed properly](http://install.python-guide.org).  Also, install the [Heroku Toolbelt](https://toolbelt.heroku.com/) and [Postgres](https://devcenter.heroku.com/articles/heroku-postgresql#local-setup).
+        {
+        "game_id": game_id,
+        "player_id": player_id
+        }
+        
++ Response 200 (application/json)
 
-```sh
-$ git clone git@github.com:heroku/python-getting-started.git
-$ cd python-getting-started
+        {"status": "unavailable", "num_answered": 0, "players": [1, 21, 22], "game": null, "questions": [], "id": 1}
 
-$ pip install -r requirements.txt
 
-$ createdb python_getting_started
++ Response 200 (application/json)
 
-$ python manage.py migrate
-$ python manage.py collectstatic
+        {"status": "available", "num_answered": 0, "players": [1, 21, 22], "game": null, "questions": [], "id": 1}
+        
 
-$ heroku local
-```
 
-Your app should now be running on [localhost:5000](http://localhost:5000/).
+## Player [/create_game]
 
-## Deploying to Heroku
+### Create new player [POST]
++ Request (application/json)
 
-```sh
-$ heroku create
-$ git push heroku master
+        {
+        }
+        
++ Response 200 (application/json)
 
-$ heroku run python manage.py migrate
-$ heroku open
-```
-or
+        {"id": 3}
+        
+## Player [/create_player]
 
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+### Create new player [POST]
++ Request (application/json)
 
-## Documentation
+        {
+        }
+        
++ Response 200 (application/json)
 
-For more information about using Python on Heroku, see these Dev Center articles:
+        {"points": 0, "id": 30, "prize": []}
 
-- [Python on Heroku](https://devcenter.heroku.com/categories/python)
+## Session [/session]
+
+### Get the session data [GET]
++ Request (application/json)
+
+        {
+        "session_id": session_id
+        }
+        
++ Response 200 (application/json)
+
+         {"pk": 321, "model": "api.session", "player_count": 0, "fields": {"status": "unavailable", "players": [], "game": null, "questions": []}}
+
++ Response 200 (application/json)
+
+         {"pk": 321, "model": "api.session", "player_count": 0, "fields": {"status": "available", "players": [], "game": null, "questions": []}}
+
+## Question endpoint [/question]
+### Get a question [POST]
+
++ Request (application/json)
+
+        {
+        "session_id": session_id,
+        }
+        
++ Response 200 (application/json)
+
+        {"third_option": "2000", "first_option": "400", "text": "How many people signed up for this event", "second_option": "500", "fourth_option": "1000", "answer": 1, "id": 2}
+        
+
+## Results endpoint [/results]
+### Results [GET]
++ Request (application/json)
+
+        {
+        "session_id": session_id
+        }
+        
++ Response 200 (application/json)
+
+        [{"points": 0, "id": 1, "prize": []}, {"points": 0, "id": 21, "prize": []}, {"points": 0, "id": 22, "prize": []}]
+
+## Answer endpoint [/answer]
+### Answering [POST]
+
++ Request (application/json)
+
+        {
+        "session_id": session_id,
+        "player_id": player_id,
+        "answer": answer
+        }
+        
++ Response 200 (application/json)
+
+        [{"model": "api.question", "pk": 2, "fields": {"text": "", "answer": 3, "first_option": "", "second_option": "", "third_option": ""}]
